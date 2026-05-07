@@ -1,28 +1,25 @@
-Đã tuân thủ AGENTS.md và chỉnh lại UI Container Control theo backend mới + mobile friendly.
+Đã tuân thủ AGENTS.md và bỏ hẳn chức năng chọn Services trong Container Control theo yêu cầu.
 
 Input của user
-- "Chỉnh UI Container Control: List container để ngay trên input checklist, và checklist phải chọn nhiều không cần Ctrl, dùng tốt trên mobile."
+- "bỏ luôn chức năng này được hông" (phần checklist Services)
 
 Nguyên nhân gốc
-- Dùng `<select multiple>` khiến phải giữ Ctrl/Cmd để multi-select trên desktop và thao tác khó trên mobile.
-- Nút List containers đặt tách khỏi vùng chọn nên khó hiểu thứ tự thao tác.
+- UI có cả Services + Containers gây dư thừa với nhu cầu quản lý hiện tại.
+- Người dùng chỉ muốn thao tác theo container ở giao diện này.
 
 Cách đã chỉnh để khắc phục
-- Đổi Services/Containers từ `<select multiple>` sang checklist checkbox.
-- Đặt nút `↻ List containers` ngay phần header của checklist Services để nhấn trước khi chọn.
-- Bổ sung hint text trong từng checklist để nhắc luồng thao tác.
-- Cập nhật JS đọc dữ liệu từ checkbox checked thay vì selectedOptions.
-- Cập nhật hàm đồng bộ dữ liệu list để render checkbox items + giữ lại lựa chọn cũ khi refresh.
-- Khởi tạo mặc định service `app` được tick sẵn; container checklist hiển thị trạng thái chờ List.
-- Thêm CSS cho checklist box, item, head/hint để dùng tốt trên desktop và mobile.
+- Xóa hoàn toàn checklist Services khỏi UI Container Control.
+- Giữ lại 1 checklist Containers và đưa nút `List containers` ngay header của checklist.
+- Cập nhật payload frontend chỉ gửi `containers`, không còn gửi `services`.
+- Cập nhật thông báo validate để bắt buộc chọn container trước khi thao tác/logs.
+- Giữ logic backend mới: start/restart/rebuild map container sang service tự động.
 
 File đã áp fix bug
 - services/app/public/index.html
 - services/app/public/js/main.js
-- services/app/public/css/components.css
 
-Trả lời câu hỏi "chỉnh UI Container Control theo backend mới"
-- Đã chỉnh xong: hiện multi-select bằng checkbox (không cần Ctrl), List containers nằm ngay vùng checklist, thao tác mobile thuận tiện hơn.
+Trả lời câu hỏi "bỏ luôn chức năng này được không"
+- Đã bỏ xong phần chọn Services ở UI Container Control, giờ chỉ thao tác bằng danh sách Containers.
 
 Command đã chạy
 - node --check services/app/public/js/main.js
