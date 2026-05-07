@@ -519,7 +519,27 @@ async function runServiceAction(action, services, cfg = config()) {
   const targets = requireAllowedServices(services, cfg);
   if (!targets.length) return null;
   if (action === 'start' || action === 'restart' || action === 'up' || action === 'rebuild') {
-    return runComposeForServices(['up', '-d', '--build', '--no-deps', ...targets], cfg);
+    const composeConfig = await runComposeForServices(['config', '--format', 'json'], cfg);
+    let serviceMap = {};
+    try {
+      serviceMap = JSON.parse(composeConfig.stdout || '{}')?.services || {};
+    } catch (_err) {
+      serviceMap = {};
+    }
+    const buildTargets = targets.filter((name) => Boolean(serviceMap?.[name]?.build));
+    const plainTargets = targets.filter((name) => !buildTargets.includes(name));
+
+    if (buildTargets.length) {
+      await runComposeForServices(['up', '-d', '--build', '--no-deps', ...buildTargets], cfg);
+    }
+    if (plainTargets.length) {
+      if (action === 'start' || action === 'up') {
+        await runComposeForServices(['up', '-d', '--no-deps', ...plainTargets], cfg);
+      } else if (action === 'restart' || action === 'rebuild') {
+        await runComposeForServices(['restart', ...plainTargets], cfg);
+      }
+    }
+    return { code: 0, command: `compose ${action}`, stdout: '', stderr: '' };
   }
   if (action === 'stop') return runComposeForServices(['stop', ...targets], cfg);
   throw new Error(`Unsupported compose service action: ${action}`);

@@ -1,25 +1,26 @@
-Đã tuân thủ AGENTS.md và bỏ hẳn chức năng chọn Services trong Container Control theo yêu cầu.
+Đã tuân thủ AGENTS.md và xử lý lại luồng restart để tránh lỗi cloudflared config.yml bị mount sai kiểu directory.
 
 Input của user
-- "bỏ luôn chức năng này được hông" (phần checklist Services)
+- "Kiểm tra lại chỗ restart, sau khi restart cloudflared thì lỗi config.yml is a directory; start thì không lỗi."
 
 Nguyên nhân gốc
-- UI có cả Services + Containers gây dư thừa với nhu cầu quản lý hiện tại.
-- Người dùng chỉ muốn thao tác theo container ở giao diện này.
+- Luồng `restart` trước đó ép `up -d --build --no-deps` cho mọi service.
+- Với service image-only như cloudflared, việc recreate không cần thiết có thể làm lộ lỗi bind-mount nguồn file không đúng trạng thái, dẫn đến `/etc/cloudflared/config.yml` thành directory.
 
 Cách đã chỉnh để khắc phục
-- Xóa hoàn toàn checklist Services khỏi UI Container Control.
-- Giữ lại 1 checklist Containers và đưa nút `List containers` ngay header của checklist.
-- Cập nhật payload frontend chỉ gửi `containers`, không còn gửi `services`.
-- Cập nhật thông báo validate để bắt buộc chọn container trước khi thao tác/logs.
-- Giữ logic backend mới: start/restart/rebuild map container sang service tự động.
+- `runServiceAction` tách service theo compose config:
+  - service có `build`: vẫn dùng `up -d --build --no-deps`.
+  - service chỉ có `image`: không ép build/recreate; dùng `up -d --no-deps` cho start/up, và `restart` cho restart/rebuild.
+- Vẫn giữ cơ chế map container -> compose service cho start/restart/rebuild.
+- Cập nhật docs và REST Client note theo behavior mới.
 
 File đã áp fix bug
-- services/app/public/index.html
-- services/app/public/js/main.js
+- services/deploy-code/src/index.js
+- docs/deploy-code.md
+- docs/.http/05-deploy-code.http
 
-Trả lời câu hỏi "bỏ luôn chức năng này được không"
-- Đã bỏ xong phần chọn Services ở UI Container Control, giờ chỉ thao tác bằng danh sách Containers.
+Trả lời câu hỏi "restart cloudflared lỗi còn start không lỗi"
+- Đã xử lý theo hướng phù hợp: restart image-only service như cloudflared sẽ dùng compose restart thay vì ép recreate/build, giúp tránh lỗi mount config file thành directory.
 
 Command đã chạy
-- node --check services/app/public/js/main.js
+- node --check services/deploy-code/src/index.js
