@@ -1,26 +1,27 @@
-Đã tuân thủ AGENTS.md và xử lý lại luồng restart để tránh lỗi cloudflared config.yml bị mount sai kiểu directory.
+Đã tuân thủ AGENTS.md và xử lý tự động toàn bộ container theo nguyên tắc build/restart.
 
 Input của user
-- "Kiểm tra lại chỗ restart, sau khi restart cloudflared thì lỗi config.yml is a directory; start thì không lỗi."
+- "Container nào có Dockerfile thì rebuild, không có thì restart; xử lý tự động tổng thể hết các container."
 
 Nguyên nhân gốc
-- Luồng `restart` trước đó ép `up -d --build --no-deps` cho mọi service.
-- Với service image-only như cloudflared, việc recreate không cần thiết có thể làm lộ lỗi bind-mount nguồn file không đúng trạng thái, dẫn đến `/etc/cloudflared/config.yml` thành directory.
+- Luồng cũ khi nhận `containers` cho start/restart/rebuild chủ yếu map sang service, có thể bỏ sót container không thuộc compose service.
+- `rebuild` với raw container chưa có fallback hợp lý.
 
 Cách đã chỉnh để khắc phục
-- `runServiceAction` tách service theo compose config:
-  - service có `build`: vẫn dùng `up -d --build --no-deps`.
-  - service chỉ có `image`: không ép build/recreate; dùng `up -d --no-deps` cho start/up, và `restart` cho restart/rebuild.
-- Vẫn giữ cơ chế map container -> compose service cho start/restart/rebuild.
-- Cập nhật docs và REST Client note theo behavior mới.
+- Với action `start/restart/rebuild` và input `containers`, backend tự phân loại target:
+  - Container có `composeService`: map sang service để áp quy tắc build-aware (service có build thì build, image-only thì restart/up không build).
+  - Container không thuộc compose: giữ lại chạy docker container action trực tiếp.
+- Với raw container mà gọi `rebuild`, tự fallback thành `docker restart`.
+- Như vậy xử lý bao trùm toàn bộ container, không bỏ sót target ngoài compose.
+- Cập nhật docs và REST Client note theo hành vi tự động mới.
 
 File đã áp fix bug
 - services/deploy-code/src/index.js
 - docs/deploy-code.md
 - docs/.http/05-deploy-code.http
 
-Trả lời câu hỏi "restart cloudflared lỗi còn start không lỗi"
-- Đã xử lý theo hướng phù hợp: restart image-only service như cloudflared sẽ dùng compose restart thay vì ép recreate/build, giúp tránh lỗi mount config file thành directory.
+Trả lời câu hỏi "xử lý tự động tổng thể hết các container"
+- Đã chỉnh backend để tự động phân loại và áp dụng đúng chiến lược build/restart cho cả container compose lẫn non-compose.
 
 Command đã chạy
 - node --check services/deploy-code/src/index.js

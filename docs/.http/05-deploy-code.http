@@ -119,9 +119,10 @@ x-api-key: {{apiKey}}
 
 ###
 # App proxy: generic action endpoint
-# NOTE: start/restart/rebuild run via compose service.
+# NOTE: start/restart/rebuild auto-classify targets.
 # - service has build => up -d --build --no-deps
 # - image-only service => start/up without build or restart (no forced recreate)
+# - non-compose container => docker start/restart, rebuild falls back to restart
 POST {{baseUrl}}/api/deploy-code/containers/action
 Accept: application/json
 Content-Type: application/json

@@ -572,9 +572,19 @@ async function controlTargets(action, body = {}, cfg = config()) {
 
     if ((normalizedAction === 'start' || normalizedAction === 'restart' || normalizedAction === 'rebuild')
       && containers.length) {
-      const inferred = await inferServicesFromContainers(containers, cfg);
-      services.push(...inferred);
-      containers = [];
+      const allowedTargets = await requireAllowedContainers(containers, cfg);
+      const existing = await listDockerContainers(cfg);
+      const inferredServices = [];
+      const rawContainers = [];
+      allowedTargets.forEach((target) => {
+        const hit = existing.find((item) => item.id.startsWith(target) || item.names.includes(target));
+        if (hit?.composeService) inferredServices.push(hit.composeService);
+        else rawContainers.push(target);
+      });
+      if (inferredServices.length) {
+        services.push(...requireAllowedServices(inferredServices, cfg));
+      }
+      containers = uniqueList(rawContainers);
     }
 
     if (services.length) {
@@ -583,10 +593,11 @@ async function controlTargets(action, body = {}, cfg = config()) {
     }
 
     if (containers.length) {
-      if (normalizedAction === 'rebuild' || normalizedAction === 'up') {
+      if (normalizedAction === 'up') {
         throw new Error(`${normalizedAction} must target compose services, not raw containers.`);
       }
-      const result = await runDockerContainerAction(normalizedAction, containers, cfg);
+      const containerAction = normalizedAction === 'rebuild' ? 'restart' : normalizedAction;
+      const result = await runDockerContainerAction(containerAction, containers, cfg);
       results.push({ targetType: 'container', targets: uniqueList(containers), result: summarizeCommandResult(result) });
     }
 
