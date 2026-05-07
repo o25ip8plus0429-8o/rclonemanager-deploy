@@ -1,23 +1,28 @@
-Đã tuân thủ AGENTS.md và viết lại file HTTP test deploy-code theo backend mới.
+Đã tuân thủ AGENTS.md và chỉnh lại UI Container Control theo backend mới + mobile friendly.
 
 Input của user
-- "Viết lại file test REST Client theo backend mới, lưu tại docs/.http/05-deploy-code.http"
+- "Chỉnh UI Container Control: List container để ngay trên input checklist, và checklist phải chọn nhiều không cần Ctrl, dùng tốt trên mobile."
 
 Nguyên nhân gốc
-- File test cũ chưa phản ánh đúng hành vi backend mới: start/restart/rebuild luôn build qua compose service.
-- Chưa có đủ case test theo container target để xác nhận cơ chế infer service.
+- Dùng `<select multiple>` khiến phải giữ Ctrl/Cmd để multi-select trên desktop và thao tác khó trên mobile.
+- Nút List containers đặt tách khỏi vùng chọn nên khó hiểu thứ tự thao tác.
 
 Cách đã chỉnh để khắc phục
-- Tạo lại đầy đủ suite request cho app proxy và direct sidecar.
-- Cập nhật ghi chú trong request: start/restart/rebuild luôn chạy compose `up -d --build --no-deps`.
-- Bổ sung các case test gửi `containers` cho start/restart/rebuild để kiểm tra luồng suy ra compose service từ label container.
-- Giữ các request status/logs/check/deploy/upload/services/containers/inspect/action đầy đủ để smoke test toàn API.
+- Đổi Services/Containers từ `<select multiple>` sang checklist checkbox.
+- Đặt nút `↻ List containers` ngay phần header của checklist Services để nhấn trước khi chọn.
+- Bổ sung hint text trong từng checklist để nhắc luồng thao tác.
+- Cập nhật JS đọc dữ liệu từ checkbox checked thay vì selectedOptions.
+- Cập nhật hàm đồng bộ dữ liệu list để render checkbox items + giữ lại lựa chọn cũ khi refresh.
+- Khởi tạo mặc định service `app` được tick sẵn; container checklist hiển thị trạng thái chờ List.
+- Thêm CSS cho checklist box, item, head/hint để dùng tốt trên desktop và mobile.
 
 File đã áp fix bug
-- docs/.http/05-deploy-code.http
+- services/app/public/index.html
+- services/app/public/js/main.js
+- services/app/public/css/components.css
 
-Trả lời câu hỏi "Viết lại file HTTP theo backend mới"
-- Đã viết lại hoàn chỉnh file `docs/.http/05-deploy-code.http` và cập nhật theo behavior backend mới.
+Trả lời câu hỏi "chỉnh UI Container Control theo backend mới"
+- Đã chỉnh xong: hiện multi-select bằng checkbox (không cần Ctrl), List containers nằm ngay vùng checklist, thao tác mobile thuận tiện hơn.
 
 Command đã chạy
-- node --check services/deploy-code/src/index.js
+- node --check services/app/public/js/main.js
