@@ -1,26 +1,24 @@
-Đã tuân thủ AGENTS.md và chỉnh lại hiển thị trạng thái Deploy code theo style giống headerStats.
+Đã tuân thủ AGENTS.md và chỉnh lại luồng container control theo mục tiêu quản lý container nhưng luôn build khi start/restart.
 
 Input của user
-- "Chỉnh phần Enabled/Running/Local commit/Remote commit/Last result giống với id=headerStats, có màu trạng thái, có phân cách giữa label và value."
+- "Mục tiêu quản lý theo container, nhưng start/restart phải rebuild để đảm bảo code mới nhất, tự động, không phụ thuộc .env."
 
 Nguyên nhân gốc
-- Deploy code status đang render theo dạng metric thường, chưa đồng bộ UI compact badge như headerStats.
-- Label/value chưa có style tách cặp rõ ràng theo từng ô badge.
+- Logic cũ cho phép `restart` container trực tiếp bằng `docker restart`, nên có tình huống restart mà không build image/code mới.
+- `start` service cũng chưa ép build ở mọi luồng.
 
 Cách đã chỉnh để khắc phục
-- Thay block metric cũ bằng container `deployCodeHeaderStats` dùng hệ style `header-stat-item`.
-- Render lại toàn bộ trạng thái Deploy code thành các badge label/value compact.
-- Áp màu trạng thái cho Enabled/Running (green/red), commit (blue/purple khi có update), last result (gray/red khi có lỗi).
-- Bổ sung class `deploy-code-stats` để layout wrap + spacing đồng bộ.
-- Trường hợp lỗi tải status vẫn render đủ 5 badge với trạng thái fallback.
+- Đổi `runServiceAction` để `start`, `restart`, `up`, `rebuild` đều chạy cùng một lệnh: `up -d --build --no-deps`.
+- Với action `start/restart/rebuild`, nếu user truyền `containers`, hệ thống luôn suy ra compose service từ container và chuyển sang luồng rebuild service.
+- Như vậy không còn luồng start/restart mà bỏ qua build cho các target thuộc compose.
+- Cập nhật tài liệu deploy-code để phản ánh hành vi mới.
 
 File đã áp fix bug
-- services/app/public/index.html
-- services/app/public/js/main.js
-- services/app/public/css/components.css
+- services/deploy-code/src/index.js
+- docs/deploy-code.md
 
-Trả lời câu hỏi "Chỉnh phần trạng thái Deploy code giống headerStats"
-- Đã chỉnh xong: phần Deploy code status giờ hiển thị dạng badge giống headerStats, có phân tách label/value rõ ràng và có màu trạng thái.
+Trả lời câu hỏi "Hướng xử lý hợp lý với nhu cầu quản lý container nhưng luôn rebuild"
+- Đã chỉnh backend theo hướng: mọi start/restart/rebuild đều ép build qua compose service; container input được map sang service trước khi chạy.
 
 Command đã chạy
-- node --check services/app/public/js/main.js
+- node --check services/deploy-code/src/index.js
