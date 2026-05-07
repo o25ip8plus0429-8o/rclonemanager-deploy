@@ -1,24 +1,23 @@
-Đã tuân thủ AGENTS.md và chỉnh lại luồng container control theo mục tiêu quản lý container nhưng luôn build khi start/restart.
+Đã tuân thủ AGENTS.md và viết lại file HTTP test deploy-code theo backend mới.
 
 Input của user
-- "Mục tiêu quản lý theo container, nhưng start/restart phải rebuild để đảm bảo code mới nhất, tự động, không phụ thuộc .env."
+- "Viết lại file test REST Client theo backend mới, lưu tại docs/.http/05-deploy-code.http"
 
 Nguyên nhân gốc
-- Logic cũ cho phép `restart` container trực tiếp bằng `docker restart`, nên có tình huống restart mà không build image/code mới.
-- `start` service cũng chưa ép build ở mọi luồng.
+- File test cũ chưa phản ánh đúng hành vi backend mới: start/restart/rebuild luôn build qua compose service.
+- Chưa có đủ case test theo container target để xác nhận cơ chế infer service.
 
 Cách đã chỉnh để khắc phục
-- Đổi `runServiceAction` để `start`, `restart`, `up`, `rebuild` đều chạy cùng một lệnh: `up -d --build --no-deps`.
-- Với action `start/restart/rebuild`, nếu user truyền `containers`, hệ thống luôn suy ra compose service từ container và chuyển sang luồng rebuild service.
-- Như vậy không còn luồng start/restart mà bỏ qua build cho các target thuộc compose.
-- Cập nhật tài liệu deploy-code để phản ánh hành vi mới.
+- Tạo lại đầy đủ suite request cho app proxy và direct sidecar.
+- Cập nhật ghi chú trong request: start/restart/rebuild luôn chạy compose `up -d --build --no-deps`.
+- Bổ sung các case test gửi `containers` cho start/restart/rebuild để kiểm tra luồng suy ra compose service từ label container.
+- Giữ các request status/logs/check/deploy/upload/services/containers/inspect/action đầy đủ để smoke test toàn API.
 
 File đã áp fix bug
-- services/deploy-code/src/index.js
-- docs/deploy-code.md
+- docs/.http/05-deploy-code.http
 
-Trả lời câu hỏi "Hướng xử lý hợp lý với nhu cầu quản lý container nhưng luôn rebuild"
-- Đã chỉnh backend theo hướng: mọi start/restart/rebuild đều ép build qua compose service; container input được map sang service trước khi chạy.
+Trả lời câu hỏi "Viết lại file HTTP theo backend mới"
+- Đã viết lại hoàn chỉnh file `docs/.http/05-deploy-code.http` và cập nhật theo behavior backend mới.
 
 Command đã chạy
 - node --check services/deploy-code/src/index.js
