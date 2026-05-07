@@ -1,0 +1,26 @@
+Đã tuân thủ AGENTS.md và hoàn tất chỉnh UI phần Container control.
+
+Input của user
+- "Chỉnh UI, trong settings, phần `Container control`: Thay đổi input ` Services` và `Containers`: thành dạng combox check list box, mục tiêu là dùng mouse có thể chọn các serivces và containers cần thao tác."
+
+Nguyên nhân gốc
+- UI hiện tại dùng input text dạng CSV cho Services/Containers.
+- Người dùng phải gõ tay, khó thao tác bằng chuột và dễ nhập sai.
+
+Cách đã chỉnh để khắc phục
+- Đổi 2 ô input text thành 2 ô select multiple để chọn bằng chuột.
+- Giữ sẵn lựa chọn mặc định `app` cho Services.
+- Cập nhật JS để đọc selectedOptions thay vì parse chuỗi CSV.
+- Khi bấm List containers, tự đồng bộ danh sách options từ allowed list và danh sách container/service thực tế.
+- Giữ lại lựa chọn hiện tại nếu vẫn còn trong danh sách sau khi refresh.
+
+File đã áp fix bug
+- services/app/public/index.html
+- services/app/public/js/main.js
+- services/app/public/css/components.css
+
+Trả lời câu hỏi "Chỉnh UI, trong settings, phần `Container control`: đổi input Services/Containers thành combobox checklist"
+- Đã đổi xong sang dạng chọn nhiều bằng chuột (multi-select checklist style) cho cả Services và Containers, đồng thời dữ liệu mục chọn sẽ tự cập nhật theo kết quả List containers.
+
+Command đã chạy
+- node --check services/app/public/js/main.js
